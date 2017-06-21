@@ -2,22 +2,22 @@
 #include <fstream>
 #include <string>
 
-#include <pegtl.hh>
+#include <tao/pegtl.hpp>
 
-using namespace pegtl;
+using namespace tao::pegtl;
 
 namespace hello
 {
    // Parsing rule that matches a literal "Hello, ".
 
    struct prefix
-         : pegtl::string< 'H', 'e', 'l', 'l', 'o', ',', ' ' > {};
+         : tao::pegtl::string< 'H', 'e', 'l', 'l', 'o', ',', ' ' > {};
 
    // Parsing rule that matches a non-empty sequence of
    // alphabetic ascii-characters with greedy-matching.
 
    struct name
-         : pegtl::plus< pegtl::alpha > {};
+         : tao::pegtl::plus< tao::pegtl::alpha > {};
 
    // Parsing rule that matches a sequence of the 'prefix'
    // rule, the 'name' rule, a literal "!", and 'eof'
@@ -25,24 +25,26 @@ namespace hello
    // on failure.
 
    struct grammar
-         : pegtl::must< prefix, name, pegtl::one< '!' >, pegtl::eof > {};
+         : tao::pegtl::must< prefix, name, tao::pegtl::one< '!' >, tao::pegtl::eof > {};
 
    // Class template for user-defined actions that does
    // nothing by default.
 
    template< typename Rule >
    struct action
-         : pegtl::nothing< Rule > {};
+         : tao::pegtl::nothing< Rule > {};
 
    // Specialisation of the user-defined action to do
    // something when the 'name' rule succeeds; is called
    // with the portion of the input that matched the rule.
 
-   template<> struct action< name >
+   template<> 
+   struct action< name >
    {
-      static void apply( const pegtl::input & in, std::string & name )
+      template < typename Input >
+      static void apply(const Input & in, std::string & str )
       {
-         name = in.string();
+         str = in.string();
       }
    };
 
@@ -53,8 +55,6 @@ namespace hello
 
 int main(int argc, char const *argv[])
 {
-
-
 	std::ifstream file;
 
 	file.open("/etc/nsswitch.conf");
@@ -64,9 +64,10 @@ int main(int argc, char const *argv[])
 	while (std::getline(file, line)) {
 		if (line.find("Hello") != std::string::npos && line[0] != '#') {
 			std::cout << line << std::endl;
-			std::string name;
+         std::string name;
+			tao::pegtl::string_input<> in( line, "" );
 
-			pegtl::parse< hello::grammar, hello::action >( line, "", name );
+			tao::pegtl::parse< hello::grammar, hello::action >( in, name );
 			std::cout << "Good bye, " << name << "!" << std::endl;
 		}
 	}
