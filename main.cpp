@@ -62,11 +62,11 @@ int main(int argc, char const *argv[])
 	std::string line;
 
 	while (std::getline(file, line)) {
-		if (line.find("usbguard") != std::string::npos && line[0] != '#') {
+		if (line.find("Hello") != std::string::npos && line[0] != '#') {
 			std::cout << line << std::endl;
 			std::string name;
 
-			pegtl::parse< hello::grammar, hello::action >( name );
+			pegtl::parse< hello::grammar, hello::action >( line, "", name );
 			std::cout << "Good bye, " << name << "!" << std::endl;
 		}
 	}
